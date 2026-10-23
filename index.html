@@ -1586,6 +1586,14 @@ body.ctb .ctc-row:has(.ctc-cp.ok) .ctc-k::after{content:"Copied"}
 .cardx li .bk:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 /* Experiments cards: the glitter goes over the screenshot too (the screenshot is a flex item with order:1, so it painted last) */
 .lc .xk-glit{z-index:2}
+
+/* ===== About, Oct 22: the picture column always holds the rolling line's picture ===== */
+.rs-gutter .rs-g{align-items:start}
+.rs-gutter .rs-gp{min-height:0}
+@media (max-width:760px){
+  .rs-gutter .rs-gp{display:block;min-height:0!important}
+  .rs-gutter .rs-gf{position:relative;top:0!important;width:100%;max-width:420px}
+}
 </style><link rel="stylesheet" href="xp-live.css"></head><body class="hd-2 ctb">
 <div class="pblur" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <header class="top">
@@ -2852,19 +2860,20 @@ window.AV = {$: HX.$, $$: HX.$$, clamp: HX.clamp, reduce: HX.reduce, fine: match
       slots.forEach(function(s){ worst = Math.max(worst, s.ln.querySelector('.rs-t').getBoundingClientRect().width);
         s.it.forEach(function(o){ worst = Math.max(worst, $('.rs-w', o).getBoundingClientRect().width + 34); }); });
       para.style.setProperty('--rs-fm', Math.min(cap, Math.floor(10 * 100 * avail / worst) / 10) + 'px'); }
-    function size(){ fit(); slots.forEach(function(s){ place(s, true); }); }
+    function size(){ fit(); slots.forEach(function(s){ place(s, true); }); if (gp && gf) { gp.style.minHeight = ''; var ph = gf.offsetHeight || gp.clientWidth / 1.5; if (innerWidth > 760) gp.style.minHeight = Math.ceil(ph) + 'px'; } autoSide(); }
     function showSide(s){ if (!gp) return; var r = s.ln.getBoundingClientRect(), g = gp.getBoundingClientRect(), h = gf.offsetHeight || gp.clientWidth / 1.5;
       var y = r.top + r.height / 2 - g.top - h / 2; y = Math.max(0, Math.min(g.height - h, y)); gf.style.setProperty('--gy', y + 'px');
       swap(gf, cur(s)); gp.classList.add('on'); para.classList.add('hov'); slots.forEach(function(x){ x.ln.classList.toggle('hov', x === s); }); }
-    function hideSide(){ if (!gp) return; gp.classList.remove('on'); para.classList.remove('hov'); slots.forEach(function(x){ x.ln.classList.remove('hov'); }); }
+    function autoSide(){ if (!gp || mode !== 'gutter' || hover >= 0) return; var s = slots[turn] || slots[0]; showSide(s); para.classList.remove('hov'); slots.forEach(function(x){ x.ln.classList.remove('hov'); }); }
+    function hideSide(){ if (!gp) return; para.classList.remove('hov'); slots.forEach(function(x){ x.ln.classList.remove('hov'); }); if (on) { autoSide(); return; } gp.classList.remove('on'); }
     function open(s){ if (mode === 'window') { swap(s.win, cur(s)); s.el.classList.add('win'); }
       else if (mode === 'gutter') showSide(s);
       else if (mode === 'pics') { s.el.classList.add('big'); s.el.style.width = width(s) + 'px'; } }
     function close(s){ s.el.classList.remove('win'); if (mode === 'gutter') hideSide(); if (mode === 'pics') { s.el.classList.remove('big'); s.el.style.width = width(s) + 'px'; } }
     function step(s){ s.i = (s.i + 1) % s.n; place(s); if (hover === s.k) open(s); }
-    function tick(){ clearTimeout(timer); if (!on || !vis || reduce || document.hidden) { dots.forEach(function(d){ d.classList.remove('go'); }); slots.forEach(function(x){ x.el.classList.remove('go'); }); return; }
+    function tick(){ clearTimeout(timer); if (!on || !vis || reduce || document.hidden) { dots.forEach(function(d){ d.classList.remove('go'); }); slots.forEach(function(x){ x.el.classList.remove('go'); }); if (on) autoSide(); return; }
       dots.forEach(function(d, k){ d.classList.toggle('go', k === turn); });
-      slots.forEach(function(x){ x.el.classList.remove('go'); }); void para.offsetWidth; slots[turn].el.classList.add('go');
+      slots.forEach(function(x){ x.el.classList.remove('go'); }); void para.offsetWidth; slots[turn].el.classList.add('go'); autoSide();
       timer = setTimeout(function(){ if (hover !== turn) step(slots[turn]); dots[turn].classList.remove('go'); turn = (turn + 1) % slots.length; tick(); }, T); }
     S.style.setProperty('--rs-t', T + 'ms');
     slots.forEach(function(s){
